@@ -31,7 +31,7 @@ module receiver_native #(
     assign dout = data[WORD_WIDTH:1];
     assign we   = (state == state_t::WRITE_WORD);
 
-    always_ff (clk) {
+    always_ff {
         if_reset {
             state = state_t::WAIT;
         } else {
@@ -54,7 +54,7 @@ module receiver_native #(
         }
     }
 
-    always_ff (clk) {
+    always_ff {
         if_reset {
             data = {1'b1 repeat (WORD_WIDTH + 2)};
         } else {
@@ -66,7 +66,7 @@ module receiver_native #(
         }
     }
 
-    always_ff (clk) {
+    always_ff {
         if_reset {
             clock_counts = 0;
         } else {

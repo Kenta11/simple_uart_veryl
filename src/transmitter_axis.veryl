@@ -29,7 +29,7 @@ module transmitter_axis #(
     assign din_axis_tready = (state == state_t::WAIT);
     assign dout            = if state == state_t::TRANSMIT_BITS ? data[0] : 1;
 
-    always_ff (clk) {
+    always_ff {
         if_reset {
             state = state_t::WAIT;
         } else {
@@ -40,7 +40,7 @@ module transmitter_axis #(
         }
     }
 
-    always_ff (clk) {
+    always_ff {
         if_reset {
             data = {1 repeat (WORD_WIDTH + 1)};
         } else {
@@ -51,7 +51,7 @@ module transmitter_axis #(
         }
     }
 
-    always_ff (clk) {
+    always_ff {
         if_reset {
             clock_counts = 0;
         } else {

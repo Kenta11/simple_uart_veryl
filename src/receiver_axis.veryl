@@ -31,7 +31,7 @@ module receiver_axis #(
     assign dout_axis_tdata  = data[WORD_WIDTH:1];
     assign dout_axis_tvalid = (state == state_t::WRITE_WORD);
 
-    always_ff (clk) {
+    always_ff {
         if_reset {
             state = state_t::WAIT;
         } else {
@@ -60,7 +60,7 @@ module receiver_axis #(
         }
     }
 
-    always_ff (clk) {
+    always_ff {
         if_reset {
             data = {1'b1 repeat (WORD_WIDTH + 2)};
         } else {
@@ -72,7 +72,7 @@ module receiver_axis #(
         }
     }
 
-    always_ff (clk) {
+    always_ff {
         if_reset {
             clock_counts = 0;
         } else {
