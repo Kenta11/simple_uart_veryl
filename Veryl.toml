@@ -1,0 +1,6 @@
+[project]
+name = "simple_uart_veryl"
+version = "0.1.0"
+
+[build]
+reset_type = "sync_high"

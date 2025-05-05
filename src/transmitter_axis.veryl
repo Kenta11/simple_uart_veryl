@@ -1,0 +1,66 @@
+module transmitter_axis #(
+    param CLOCK_FREQUENCY: u32 = 100_000_000,
+    param BAUD_RATE      : u32 = 115200     ,
+    param WORD_WIDTH     : u32 = 8          ,
+) (
+    clk            : input  clock            ,
+    rst            : input  reset            ,
+    din_axis_tdata : input  logic<WORD_WIDTH>,
+    din_axis_tready: output logic            ,
+    din_axis_tvalid: input  logic            ,
+    dout           : output logic            ,
+) {
+    // constants
+    const CLOCKS_PER_BIT: u32 = CLOCK_FREQUENCY / BAUD_RATE;
+
+    // type definition
+    enum state_t: logic<2> {
+        WAIT,
+        TRANSMIT_BITS,
+    }
+
+    // registers and wires
+    var state            : state_t                ;
+    var data             : logic  <WORD_WIDTH + 2>;
+    var clock_counts     : u32                    ;
+    var full_clock_counts: bool                   ;
+
+    // logics
+    assign din_axis_tready = (state == state_t::WAIT);
+    assign dout            = if state == state_t::TRANSMIT_BITS ? data[0] : 1;
+
+    always_ff (clk) {
+        if_reset {
+            state = state_t::WAIT;
+        } else {
+            case state {
+                state_t::WAIT         : state = if din_axis_tvalid ? state_t::TRANSMIT_BITS : state;
+                state_t::TRANSMIT_BITS: state = if full_clock_counts && (data == {{0 repeat WORD_WIDTH}, 1}) ? state_t::WAIT : state;
+            }
+        }
+    }
+
+    always_ff (clk) {
+        if_reset {
+            data = {1 repeat (WORD_WIDTH + 1)};
+        } else {
+            case state {
+                state_t::WAIT         : data = {1, din_axis_tdata, 0};
+                state_t::TRANSMIT_BITS: data = if full_clock_counts ? {0, data[WORD_WIDTH + 1:1]} : data;
+            }
+        }
+    }
+
+    always_ff (clk) {
+        if_reset {
+            clock_counts = 0;
+        } else {
+            case state {
+                state_t::WAIT         : clock_counts = if full_clock_counts ? 0 : clock_counts + 1;
+                state_t::TRANSMIT_BITS: clock_counts = 0;
+            }
+        }
+    }
+
+    assign full_clock_counts = (clock_counts == (CLOCKS_PER_BIT - 1));
+}
