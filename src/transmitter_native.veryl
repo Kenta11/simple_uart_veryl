@@ -14,7 +14,7 @@ module transmitter_native #(
     const CLOCKS_PER_BIT: u32 = CLOCK_FREQUENCY / BAUD_RATE;
 
     // type definition
-    enum state_t: logic<2> {
+    enum state_t {
         WAIT,
         ASSERT_READ_ENABLE,
         READ_WORD,
@@ -62,13 +62,9 @@ module transmitter_native #(
     }
 
     always_ff {
-        if_reset {
-            clock_counts = 0;
-        } else {
-            case state {
-                state_t::TRANSMIT_BITS: clock_counts = if full_clock_counts ? 0 : clock_counts + 1;
-                default               : clock_counts = 0;
-            }
+        case state {
+            state_t::TRANSMIT_BITS: clock_counts = if full_clock_counts ? 0 : clock_counts + 1;
+            default               : clock_counts = 0;
         }
     }
 
