@@ -24,8 +24,8 @@ module receiver_native #(
     var state            : state_t                ;
     var data             : logic  <WORD_WIDTH + 2>;
     var clock_counts     : u32                    ;
-    var half_clock_counts: bool                   ;
-    var full_clock_counts: bool                   ;
+    var half_clock_counts: logic                  ;
+    var full_clock_counts: logic                  ;
 
     // logics
     assign dout = data[WORD_WIDTH:1];
@@ -38,16 +38,16 @@ module receiver_native #(
             case state {
                 state_t::WAIT        : state = if ~din ? state_t::RECEIVE_BITS : state;
                 state_t::RECEIVE_BITS: {
-                                           if full_clock_counts {
-                                               if ~data[0] {
-                                                   state = if (data[WORD_WIDTH + 1] && (~full)) ? state_t::WRITE_WORD : state_t::WAIT;
-                                               } else {
-                                                   state = if data == '{1 repeat (WORD_WIDTH + 2)} ? state_t::WAIT : state;
-                                               }
-                                           } else {
-                                               state = state;
-                                           }
-                                       }
+                    if full_clock_counts {
+                        if ~data[0] {
+                            state = if (data[WORD_WIDTH + 1] && (~full)) ? state_t::WRITE_WORD : state_t::WAIT;
+                        } else {
+                            state = if data == {1'b1 repeat (WORD_WIDTH + 2)} ? state_t::WAIT : state;
+                        }
+                    } else {
+                        state = state;
+                    }
+                }
                 state_t::WRITE_WORD: state = state_t::WAIT;
                 default            : state = state;
             }
@@ -61,7 +61,7 @@ module receiver_native #(
             case state {
                 state_t::RECEIVE_BITS: data = if half_clock_counts ? {din, data[WORD_WIDTH + 1:1]} : data;
                 state_t::WRITE_WORD  : data = data;
-                default              : data = {1 repeat (WORD_WIDTH + 2)};
+                default              : data = {1'b1 repeat (WORD_WIDTH + 2)};
             }
         }
     }

@@ -1,1 +1,5 @@
 .build/
+*.sv
+*.sv.map
+simple_uart_veryl.f
+dependencies/

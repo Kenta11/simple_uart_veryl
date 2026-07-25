@@ -1,0 +1,62 @@
+#[test(tb_transmitter_axis)]
+module tb_transmitter_axis {
+    const CLOCK_FREQUENCY: u32 = 100_000_000;
+    const BAUD_RATE      : u32 = 115200;
+    const WORD_WIDTH     : u32 = 8;
+    const CLOCKS_PER_BIT : u32 = CLOCK_FREQUENCY / BAUD_RATE;
+
+    inst clk: $tb::clock_gen;
+    inst rst: $tb::reset_gen ( clk );
+
+    var din_axis_tdata : logic<WORD_WIDTH>;
+    var din_axis_tready: logic            ;
+    var din_axis_tvalid: logic            ;
+    var dout           : logic            ;
+
+    inst dut: transmitter_axis #(
+        CLOCK_FREQUENCY: CLOCK_FREQUENCY,
+        BAUD_RATE      : BAUD_RATE      ,
+        WORD_WIDTH     : WORD_WIDTH     ,
+    ) (
+        clk              ,
+        rst              ,
+        din_axis_tdata   ,
+        din_axis_tready  ,
+        din_axis_tvalid  ,
+        dout             ,
+    );
+
+    initial {
+        din_axis_tdata  = 0;
+        din_axis_tvalid = 0;
+        rst.assert     ();
+
+        // state == WAIT
+        din_axis_tdata = 8'hA5;
+        clk.next      ();
+
+        $assert(din_axis_tready == 1'b1, "wait: tready");
+        $assert(dout == 1'b1, "wait: dout");
+
+        din_axis_tvalid = 1;
+        clk.next       ();
+
+        // state == TRANSMIT_BITS
+        din_axis_tvalid = 0;
+
+        let frame: logic<WORD_WIDTH + 2> = {1'b1, din_axis_tdata, 1'b0};
+        for j in 0..(WORD_WIDTH + 2) {
+            for _i in 0..CLOCKS_PER_BIT {
+                $assert (din_axis_tready == 1'b0, "transmit_bits: tready");
+                $assert (dout == frame[j], "transmit_bits: dout");
+                clk.next();
+            }
+        }
+
+        // state == WAIT
+        $assert(din_axis_tready == 1'b1, "wait: tready");
+        $assert(dout == 1'b1, "wait: dout");
+
+        $finish();
+    }
+}

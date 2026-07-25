@@ -25,7 +25,7 @@ module transmitter_native #(
     var state            : state_t                ;
     var data             : logic  <WORD_WIDTH + 2>;
     var clock_counts     : u32                    ;
-    var full_clock_counts: bool                   ;
+    var full_clock_counts: logic                  ;
 
     // logics
     assign re   = (state == state_t::ASSERT_READ_ENABLE);
@@ -39,19 +39,24 @@ module transmitter_native #(
                 state_t::WAIT              : state = if ~empty ? state_t::ASSERT_READ_ENABLE : state;
                 state_t::ASSERT_READ_ENABLE: state = state_t::READ_WORD;
                 state_t::READ_WORD         : state = state_t::TRANSMIT_BITS;
-                state_t::TRANSMIT_BITS     : state = if full_clock_counts && (data == {{0 repeat WORD_WIDTH}, 1}) ? state_t::WAIT : state;
+                state_t::TRANSMIT_BITS     : state = if full_clock_counts
+                    && (data == {{1'b0 repeat (WORD_WIDTH + 1)}, 1'b1}) ?
+                    state_t::WAIT
+                :
+                    state
+                ;
             }
         }
     }
 
     always_ff {
         if_reset {
-            data = {1 repeat (WORD_WIDTH + 1)};
+            data = {1'b1 repeat (WORD_WIDTH + 1)};
         } else {
             case state {
-                state_t::WAIT         : data = {1, din, 0};
-                state_t::TRANSMIT_BITS: data = if full_clock_counts ? {0, data[WORD_WIDTH + 1:1]} : data;
-                default               : data = {1 repeat (WORD_WIDTH + 1)};
+                state_t::READ_WORD    : data = {1'b1, din, 1'b0};
+                state_t::TRANSMIT_BITS: data = if full_clock_counts ? {1'b0, data[WORD_WIDTH + 1:1]} : data;
+                default               : data = {1'b1 repeat (WORD_WIDTH + 1)};
             }
         }
     }

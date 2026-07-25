@@ -1,0 +1,57 @@
+#[test(tb_receiver_native)]
+module tb_receiver_native {
+    const CLOCK_FREQUENCY: u32 = 100_000_000;
+    const BAUD_RATE      : u32 = 115200;
+    const WORD_WIDTH     : u32 = 8;
+    const CLOCKS_PER_BIT : u32 = CLOCK_FREQUENCY / BAUD_RATE;
+
+    inst clk: $tb::clock_gen;
+    inst rst: $tb::reset_gen ( clk );
+
+    var din : logic            ;
+    var dout: logic<WORD_WIDTH>;
+    var full: logic            ;
+    var we  : logic            ;
+
+    inst dut: receiver_native #(
+        CLOCK_FREQUENCY: CLOCK_FREQUENCY,
+        BAUD_RATE      : BAUD_RATE      ,
+        WORD_WIDTH     : WORD_WIDTH     ,
+    ) (
+        clk   ,
+        rst   ,
+        din   ,
+        dout  ,
+        full  ,
+        we    ,
+    );
+
+    initial {
+        din        = 1;
+        full       = 0;
+        rst.assert();
+
+        // state == RECEIVE_BITS
+        let frame: logic<WORD_WIDTH + 2> = {1'b1, 8'hA5, 1'b0};
+        for j in 0..(WORD_WIDTH + 2) {
+            din = frame[j];
+            for _i in 0..CLOCKS_PER_BIT {
+                clk.next();
+                $assert (we == 1'b0, "receive_bits: we");
+            }
+        }
+
+        clk.next();
+
+        // state == WRITE_WORD
+        $assert(dout == 8'hA5, "write_word: dout");
+        $assert(we == 1'b1, "write_word: we");
+
+        clk.next();
+
+        // state == WAIT
+        $assert(we == 1'b0, "wait: we");
+
+        $finish();
+    }
+}
