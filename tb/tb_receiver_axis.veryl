@@ -29,7 +29,7 @@ module tb_receiver_axis {
     initial {
         din              = 1;
         dout_axis_tready = 1;
-        rst.assert      ();
+        rst.assert();
 
         // state == RECEIVE_BITS
         let frame: logic<WORD_WIDTH + 2> = {1'b1, 8'hA5, 1'b0};
@@ -37,7 +37,7 @@ module tb_receiver_axis {
             din = frame[j];
             for _i in 0..CLOCKS_PER_BIT {
                 clk.next();
-                $assert (dout_axis_tvalid == 1'b0, "receive_bits: tvalid");
+                $assert(dout_axis_tvalid == 1'b0, "receive_bits: tvalid");
             }
         }
 

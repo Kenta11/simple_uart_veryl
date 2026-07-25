@@ -27,8 +27,8 @@ module tb_receiver_native {
     );
 
     initial {
-        din        = 1;
-        full       = 0;
+        din  = 1;
+        full = 0;
         rst.assert();
 
         // state == RECEIVE_BITS
@@ -37,7 +37,7 @@ module tb_receiver_native {
             din = frame[j];
             for _i in 0..CLOCKS_PER_BIT {
                 clk.next();
-                $assert (we == 1'b0, "receive_bits: we");
+                $assert(we == 1'b0, "receive_bits: we");
             }
         }
 

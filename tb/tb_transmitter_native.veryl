@@ -27,20 +27,20 @@ module tb_transmitter_native {
     );
 
     initial {
-        din        = 0;
-        empty      = 1;
+        din   = 0;
+        empty = 1;
         rst.assert();
 
         // state == WAIT
-        din      = 8'hA5;
-        empty    = 0;
+        din   = 8'hA5;
+        empty = 0;
         clk.next();
 
         // state == ASSERT_READ_ENABLE
         $assert(re == 1'b1, "assert_read_enable: re");
         $assert(dout == 1'b1, "assert_read_enable: dout");
 
-        empty    = 1;
+        empty = 1;
         clk.next();
 
         // state == READ_WORD
@@ -53,8 +53,8 @@ module tb_transmitter_native {
         let frame: logic<WORD_WIDTH + 2> = {1'b1, din, 1'b0};
         for j in 0..(WORD_WIDTH + 2) {
             for _i in 0..CLOCKS_PER_BIT {
-                $assert (re == 1'b0, "transmit_bits: re");
-                $assert (dout == frame[j], "transmit_bits: dout");
+                $assert(re == 1'b0, "transmit_bits: re");
+                $assert(dout == frame[j], "transmit_bits: dout");
                 clk.next();
             }
         }

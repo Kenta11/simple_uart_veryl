@@ -29,17 +29,17 @@ module tb_transmitter_axis {
     initial {
         din_axis_tdata  = 0;
         din_axis_tvalid = 0;
-        rst.assert     ();
+        rst.assert();
 
         // state == WAIT
         din_axis_tdata = 8'hA5;
-        clk.next      ();
+        clk.next();
 
         $assert(din_axis_tready == 1'b1, "wait: tready");
         $assert(dout == 1'b1, "wait: dout");
 
         din_axis_tvalid = 1;
-        clk.next       ();
+        clk.next();
 
         // state == TRANSMIT_BITS
         din_axis_tvalid = 0;
@@ -47,8 +47,8 @@ module tb_transmitter_axis {
         let frame: logic<WORD_WIDTH + 2> = {1'b1, din_axis_tdata, 1'b0};
         for j in 0..(WORD_WIDTH + 2) {
             for _i in 0..CLOCKS_PER_BIT {
-                $assert (din_axis_tready == 1'b0, "transmit_bits: tready");
-                $assert (dout == frame[j], "transmit_bits: dout");
+                $assert(din_axis_tready == 1'b0, "transmit_bits: tready");
+                $assert(dout == frame[j], "transmit_bits: dout");
                 clk.next();
             }
         }
