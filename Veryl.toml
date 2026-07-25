@@ -1,6 +1,10 @@
 [project]
 name = "simple_uart_veryl"
 version = "0.1.1"
+repository = "https://github.com/Kenta11/simple_uart_veryl"
 
 [build]
 target = {type = "directory", path = "target"}
+
+[publish]
+register = true
